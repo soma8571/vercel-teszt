@@ -3,8 +3,8 @@ require('dotenv').config();
 
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu', // Use your email provider
-    port: 25,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
