@@ -17,7 +17,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res, next)=> {
-    res.send(myData)
+    //res.send(myData)
+    res.send(process.env.DB_HOST ?? "nincs db host")
 })
 
 app.get("/users", (req, res, next)=>{
