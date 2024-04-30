@@ -35,12 +35,16 @@ app.get("/users", (req, res, next)=>{
 })
 
 app.get("/mail", (req, res) => {
-    try {
-        sendingMail()
-        res.send("A levél küldése sikeres volt")
+    /* try {
+        const sendingInfo = await sendingMail()
+        res.send("A levél küldése sikeres volt." + sendingInfo)
     } catch (err) {
         res.status(403).send("Hiba történt a levél küldése során")
-    }
+    } */
+    sendingMail().then((eredmeny)=>{
+        res.send("A küldés sikeres volt. " + eredmeny)
+    })
+    .catch(err => res.send("sikeretelen küldés. " + err))
 })
 
 app.listen(port, ()=> {

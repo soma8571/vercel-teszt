@@ -19,7 +19,7 @@ let mailOptions = {
 };
 
 
-const sendingMail = () => {
+const sendingMail = async () => {
     /* transporter.verify(function (error, success) {
         if (error) {
           console.log(error);
@@ -27,13 +27,19 @@ const sendingMail = () => {
           console.log("Server is ready to take our messages");
         }
       }); */
-    transporter.sendMail(mailOptions, function(error, info){
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
+    const result = await new Promise((resolve, reject)=> {
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+                reject(error.message)
+            } else {
+                console.log('Email sent: ' + info.response);
+                resolve(info.messageId)
+            }
+        });
+    })
+    return result
+    
 }
 
 module.exports = sendingMail
