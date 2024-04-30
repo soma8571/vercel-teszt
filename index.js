@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 require('dotenv').config();
 const connection = require('./src/db')
+const sendingMail = require('./src/mailer')
 
 const port = process.env.PORT ?? 8008;
 
@@ -30,6 +31,15 @@ app.get("/users", (req, res, next)=>{
         })
     } catch (err) {
         res.send("Hiba a kérés során")
+    }
+})
+
+app.get("/mail", (req, res) => {
+    try {
+        sendingMail()
+        res.send("A levél küldése sikeres volt")
+    } catch (err) {
+        res.status(403).send("Hiba történt a levél küldése során")
     }
 })
 
