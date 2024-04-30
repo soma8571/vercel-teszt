@@ -21,7 +21,7 @@ app.get("/", (req, res, next)=> {
 })
 
 app.get("/users", (req, res, next)=>{
-    try {
+    /* try {
         connection.query("SELECT * FROM users LIMIT 5", (error, results, fields)=>{
             if (error) throw error;
             //console.log(fields);
@@ -29,7 +29,8 @@ app.get("/users", (req, res, next)=>{
         })
     } catch (err) {
         res.send("Hiba a kérés során")
-    }
+    } */
+    res.send(process.env.DB_HOST ?? "nincs db host")
 })
 
 app.listen(port, ()=> {
