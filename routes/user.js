@@ -22,15 +22,16 @@ router.post("/login", (req, res, next) => {
     if (passwdPosted !== "" && emailPosted !== "") {
         getUserAuthData(emailPosted).then(passDB => {
             if (passDB === false) {
-                res.status(403).send("Hiba. Hibás email/jelszó páros.")
+                res.status(403).json({msg: "Hiba. Hibás email/jelszó páros." })
+
             } else {
                 //res.send("pass: " + passDB)
                 bcrypt.compare(passwdPosted, passDB).then(eredmeny => {
                     if (eredmeny) {
                         const token = jwt.sign({foo: 'bar'}, "text")
-                        res.send(token)
+                        res.json({"accessToken": token})
                     } else {
-                        res.status(403).send("Hiba. Hibás email/jelszó páros.")
+                        res.status(403).json({msg: "Hiba. Hibás email/jelszó páros." })
                     }
                 })
             }

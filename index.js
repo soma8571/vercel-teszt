@@ -6,7 +6,11 @@ const sendingMail = require('./src/mailer')
 const cors = require('cors')
 const user = require('./routes/user')
 
-app.use(cors())
+const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+}
+app.use(cors(corsOptions))
 
 const port = process.env.PORT ?? 8008;
 
