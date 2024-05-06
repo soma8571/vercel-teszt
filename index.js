@@ -28,7 +28,7 @@ app.get("/", (req, res, next)=> {
 })
 
 function isTokenValid(req, res, next) {
-    if (req.headers['Authorization']) {
+    if (req.headers['authorization']) {
         next()
     } else {
         res.status(403).send("Hiba")
@@ -36,7 +36,7 @@ function isTokenValid(req, res, next) {
 }
 
 app.get("/numberofrecipients", isTokenValid, (req, res) => {
-    res.json( {"data": 22} )
+    res.json( req.headers )
 })
 
 app.get("/mail", (req, res) => {
