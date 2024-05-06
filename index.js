@@ -27,6 +27,18 @@ app.get("/", (req, res, next)=> {
     res.send(process.env.DB_HOST ?? "nincs db host")
 })
 
+function isTokenValid(req, res, next) {
+    if (req.headers['Authorization']) {
+        next()
+    } else {
+        res.status(403).send("Hiba")
+    }
+}
+
+app.get("/numberofrecipients", isTokenValid, (req, res) => {
+    res.json( {"data": 22} )
+})
+
 app.get("/mail", (req, res) => {
     sendingMail().then((eredmeny)=>{
         res.send("A küldés sikeres volt. " + eredmeny)
