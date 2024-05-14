@@ -5,6 +5,13 @@ const connection = require('./src/db')
 const sendingMail = require('./src/mailer')
 const cors = require('cors')
 const user = require('./routes/user')
+const newsletter = require('./routes/newsletter')
+var cron = require('node-cron')
+
+cron.schedule('*/10 * * * * *', ()=> {
+    console.log("Runs in every 10th sec. " + Date())
+    sendingMail()
+})
 
 const corsOptions = {
     origin: "http://localhost:3000",
@@ -21,6 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/user", user)
+app.use("/newsletter", newsletter)
 
 app.get("/", (req, res, next)=> {
     //res.send(myData)
@@ -29,6 +37,8 @@ app.get("/", (req, res, next)=> {
 
 function isTokenValid(req, res, next) {
     if (req.headers['authorization']) {
+
+        //ha megvan az auth header akkor még ellenőrizni is kell, hogy a token valid-e 
         next()
     } else {
         res.status(403).send("Hiba")
