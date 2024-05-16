@@ -64,8 +64,13 @@ const sendingMail = async () => {
         //console.log(newsletterData)
         const promiseArray = newsletterData.map((item, ind) => {
             return new Promise((resolve, reject)=> {
-                let x = {...mailOptions, to: item.email, subject: item.subject, text: item.newsletter_body}
-                transporter.sendMail(x, function(error, info){
+                let options = {
+                    ...mailOptions, 
+                    to: item.email, 
+                    subject: item.subject, 
+                    text: item.newsletter_body
+                }
+                transporter.sendMail(options, function(error, info){
                     if (error) {
                         console.log(error);
                         reject(error.message)
