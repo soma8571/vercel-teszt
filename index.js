@@ -8,10 +8,12 @@ const user = require('./routes/user')
 const newsletter = require('./routes/newsletter')
 var cron = require('node-cron')
 
-cron.schedule('*/10 * * * * *', ()=> {
-    console.log("Runs in every 10th sec. " + Date())
+/*
+cron.schedule('* * * * *', ()=> {
+    console.log("Runs in every minutes. " + Date())
     sendingMail()
 })
+*/
 
 const corsOptions = {
     origin: "http://localhost:3000",

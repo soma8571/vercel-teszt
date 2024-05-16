@@ -4,39 +4,42 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const connection = require('../src/db')
 const jwt = require('jsonwebtoken')
+const { get } = require('./user')
 
 module.exports = router
 
-router.post("/save", (req, res) => {
-    if (req.body?.subject) {
-        const subject = req.body.subject
-    } else {
+router.post("/save", async (req, res) => {
+    if (!req.body?.subject) {
         res.status(403).json({msg: "Hiba. Hiányzó adat: tárgy"})
         return
     }
-    if (req.body?.mailBody) {
-        const mailBody = req.body.mailBody
-    } else {
+    if (!req.body?.mailBody) {
         res.status(403).json({msg: "Hiba. Hiányzó adat: levél törzs"})
         return
     }
-    if (req.body?.dateToSend) {
-        const dateToSend = req.body.dateToSend
-    } else {
+    if (!req.body?.dateToSend) {
         res.status(403).json({msg: "Hiba. Hiányzó adat: küldés dátuma"})
         return
     }
-    console.log("megvan minden")
-    res.send("minden ok")
 
     //Ha rendelkezésre áll minden szükséges adat a levéllel kapcsolatban, akkor:
     //1, címzettek meghatározása
-        //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
-        const recipients = [ 505, 506]
+    //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
+    //const recipients = [ 505, 506]
+
+    //1.b: éles beállítás: az összes felhasználó lekérése
+    const userIds = await getAllUserIdFromDB()
+    const recipients = Array.isArray(userIds) ? userIds : []
+
+    console.log(recipients)
+
     //2, az adatbázis newsletters táblájába mentjük a levelet 
     const insertQuery = "INSERT INTO newsletters (subject, newsletter_body, date_to_send, user_id) VALUES (?, ?, ?, ?)"
     const params = [req.body.subject, req.body.mailBody, req.body.dateToSend, ""]
-    recipients.map(userId => {
+    recipients.map(item => {
+        //a params tömb utolsó elemét mindig cseréljük ki az aktuális userId-re
+        let userId = item?.id_users ?? item;
+        console.log(userId)
         params.splice(-1, 1, userId)
         try {
             const result = new Promise((resolve, reject) => {
@@ -55,7 +58,24 @@ router.post("/save", (req, res) => {
             }
         } catch (err) {
             console.log(err)
+            //res.status(403).json({error: "Hiba a mentés során."})
         }
     })
-    
+    res.status(200).json({msg: "A hírlevél adatainak rögzítése befejeződött."})
 })
+
+async function getAllUserIdFromDB() {
+    const query = "SELECT id_users FROM users"
+    const dbQuery = await new Promise((resolve, reject)=>{
+        connection.query(query, (err, res, fields)=>{
+            if (err) {
+                console.log("Hiba a címzettek lekérése során")
+                reject(false)
+            } else {
+                //console.log(res)
+                resolve(res)
+            }
+        })
+    })
+    return dbQuery
+}
