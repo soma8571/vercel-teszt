@@ -1,5 +1,3 @@
-const sendingMail = require('../src/mailer')
-
-export default function cronTest() {
-    sendingMail()
+export default function handler(req, res) {
+    res.status(200).end('Hello Cron!');
 }
