@@ -1,5 +1,5 @@
 const sendingMail = require('../src/mailer')
 
-export function cronTest() {
+export default function cronTest() {
     sendingMail()
 }
