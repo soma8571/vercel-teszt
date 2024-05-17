@@ -6,7 +6,7 @@ const sendingMail = require('./src/mailer')
 const cors = require('cors')
 const user = require('./routes/user')
 const newsletter = require('./routes/newsletter')
-var cron = require('node-cron')
+//var cron = require('node-cron')
 
 /*
 cron.schedule('* * * * *', ()=> {
