@@ -80,6 +80,27 @@ async function getAllUserIdFromDB() {
     return dbQuery
 }
 
+router.get("/getunsentdata", async (req, res)=> {
+    const query = "SELECT email, subject, status FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE (status = 'UNSENT' OR status = 'PENDING') AND attempt_to_send < 3 ORDER BY date_to_send ASC";
+    const dbQuery = await new Promise((resolve, reject)=>{
+        connection.query(query, (err, res, fields)=>{
+            if (err) {
+                console.log("Hiba az adatok lekérése során")
+                reject(false)
+            } else {
+                //console.log(res)
+                resolve(res)
+            }
+        })
+    })
+    if (dbQuery) {
+        res.status(200).json(dbQuery)
+    } else {
+        res.status(403).json({msg: "Hiba az adatok lekérése során."})
+    }
+    
+})
+
 router.get("/getnumberoftobesent", async (req, res) => {
     const query = "SELECT COUNT(*) as toBeSent FROM newsletters WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW()"
     const promise = await new Promise((resolve, reject) => {
