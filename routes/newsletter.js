@@ -79,3 +79,23 @@ async function getAllUserIdFromDB() {
     })
     return dbQuery
 }
+
+router.get("/getnumberoftobesent", async (req, res) => {
+    const query = "SELECT COUNT(*) as toBeSent FROM newsletters WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW()"
+    const promise = await new Promise((resolve, reject) => {
+        connection.query(query, (err, result, fields)=>{
+            if (err) {
+                console.log(err)
+                reject(false)
+            }
+            console.log(result)
+            resolve(result[0].toBeSent)   
+        })
+    })
+    //console.log(promise)
+    if (promise) {
+        res.status(200).json({msg: `Jelenleg ${promise} db levél vár kiküldésre.`})
+        return
+    }
+    res.status(403).json({msg: "Hiba az adatok lekérése során"})
+})
