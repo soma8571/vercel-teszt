@@ -3,8 +3,9 @@ const app = express()
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const connection = require('../src/db')
+const sendingMail = require('../src/mailer')
 const jwt = require('jsonwebtoken')
-const { get } = require('./user')
+const { promises } = require('nodemailer/lib/xoauth2')
 
 module.exports = router
 
@@ -26,11 +27,19 @@ router.post("/save", async (req, res) => {
     //1, címzettek meghatározása
     //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
     //const recipients = [ 505, 506]
+    const recipients = []
+    for (let i=0; i < 40; i++) {
+        if (i % 2 === 0)
+            recipients.push(506)
+        else
+            recipients.push(505)
+    }
 
     //1.b: éles beállítás: az összes felhasználó lekérése
+    /*
     const userIds = await getAllUserIdFromDB()
     const recipients = Array.isArray(userIds) ? userIds : []
-
+    */
     console.log(recipients)
 
     //2, az adatbázis newsletters táblájába mentjük a levelet 
@@ -80,8 +89,9 @@ async function getAllUserIdFromDB() {
     return dbQuery
 }
 
+//Válaszul egy objektumlistát ad, melyben a kiküldésre váró (unsent, pending) levelek adatai találhatóak
 router.get("/getunsentdata", async (req, res)=> {
-    const query = "SELECT email, id_newsletters, subject, status FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE (status = 'UNSENT' OR status = 'PENDING') AND attempt_to_send < 3 ORDER BY date_to_send ASC";
+    const query = "SELECT email, id_newsletters, subject, status FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE (status = 'UNSENT' OR status = 'PENDING') AND attempt_to_send < 3 ORDER BY id_newsletters ASC";
     const dbQuery = await new Promise((resolve, reject)=>{
         connection.query(query, (err, res, fields)=>{
             if (err) {
@@ -101,8 +111,9 @@ router.get("/getunsentdata", async (req, res)=> {
     
 })
 
+//A kiküldésre váró levelek számával válaszol
 router.get("/getnumberoftobesent", async (req, res) => {
-    const query = "SELECT COUNT(*) as toBeSent FROM newsletters WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW()"
+    const query = "SELECT COUNT(*) as toBeSent FROM newsletters WHERE (status = 'PENDING' OR status = 'UNSENT') AND attempt_to_send < 3 AND date_to_send <= NOW()"
     const promise = await new Promise((resolve, reject) => {
         connection.query(query, (err, result, fields)=>{
             if (err) {
@@ -119,4 +130,20 @@ router.get("/getnumberoftobesent", async (req, res) => {
         return
     }
     res.status(403).json({msg: "Hiba az adatok lekérése során"})
+})
+
+//A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése
+router.post("/send", async (req, res)=> {
+    if (req.body?.data) {
+        res.status(200).json({msg: req.body.data})
+        const IDs = {...reg.body.data}
+        
+        const promiseArray = IDs.map(item => {
+            return new Promise((resolve, reject) => {
+                
+            })
+        })
+        return
+    }
+    res.status(403).json({msg: "Hiba."})
 })

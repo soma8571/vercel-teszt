@@ -19,12 +19,17 @@ let mailOptions = {
     text: ''
 };
 
-async function getNewsletterData() {
-    //kiolvasunk 5 küldetlen levelet a newsletter táblából
-    const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW() LIMIT 5"
+async function getNewsletterData(newsletterId = undefined) {
+    if (!newsletterId) {
+        //kiolvasunk 5 küldetlen levelet a newsletter táblából
+        const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW() LIMIT 5"
+    } else {
+        const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters = ?"
+    }
+    const param = newsletterId ? [newsletterId] : []
     try {
         const result = await new Promise((resolve, reject)=>{
-            connection.query(query, (err, res, fields)=> {
+            connection.query(query, param, (err, res, fields)=> {
                 if (err) {
                     console.log(err)
                     reject(false)
@@ -45,7 +50,7 @@ async function getNewsletterData() {
     }
 }
 
-const sendingMail = async () => {
+const sendingMail = async (newsletterId) => {
     /* 
     transporter.verify(function (error, success) {
         if (error) {
@@ -55,7 +60,7 @@ const sendingMail = async () => {
         }
       }); 
     */
-    const newsletterData = await getNewsletterData()
+    const newsletterData = await getNewsletterData(newsletterId)
     if (newsletterData !== false) {
         const promiseArray = newsletterData.map((item, ind) => {
             return new Promise((resolve, reject)=> {
