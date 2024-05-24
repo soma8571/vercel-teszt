@@ -135,15 +135,35 @@ router.get("/getnumberoftobesent", async (req, res) => {
 //A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése
 router.post("/send", async (req, res)=> {
     if (req.body?.data) {
-        res.status(200).json({msg: req.body.data})
-        const IDs = {...reg.body.data}
+        //res.status(200).json({msg: req.body.data})
         
-        const promiseArray = IDs.map(item => {
+        //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
+        const IDs = [...req.body.data]
+        
+        /* const promiseArray = IDs.map(item => {
             return new Promise((resolve, reject) => {
-                
+                resolve(sendingMail(item.id))        
             })
         })
-        return
+        let temp = ''
+        Promise.allSettled(promiseArray).then(res.send("ok")) */
+        const promise = await new Promise(async (resolve, reject)=>{
+            const eredmeny = await sendingMail(IDs[0].id)
+            if (eredmeny !== false) {
+                resolve(true)
+            } else {
+                reject(false)
+            }
+        })
+
+        if (promise) {
+            res.json({msg: "kiküldve"})
+        } else {
+            res.json({msg: "hiba a küldés során"})
+        }
+        
+    } else {
+        res.status(403).json({msg: "Hiba."})
     }
-    res.status(403).json({msg: "Hiba."})
+    
 })
