@@ -167,7 +167,12 @@ router.post("/send", async (req, res)=> {
 })
 
 router.post("/mailtest", async (req, res) => {
-    sendingMail().then(eredmeny => {
-        res.send(eredmeny)
-    }).catch(err => res.send("hiba: " + err))
+    if (req.body?.newsletterId) {
+        sendingMail(req.body.newsletterId).then(eredmeny => {
+            res.send(eredmeny)
+        }).catch(err => res.send("Hiba: " + err))
+        return
+    }
+    res.status(403).json({msg: "Hiba. Hiányzó hírlevél azonosító."})
+    
 })

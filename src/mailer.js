@@ -25,10 +25,8 @@ async function getNewsletterData(newsletterId) {
     if (!newsletterId) {
         return false
     }
-    const query = "SELECT u.email, n.*" +
-                    "FROM newsletters n" + 
-                        "INNER JOIN users u ON n.user_id = u.id_users" +
-                    "WHERE id_newsletters = ?"
+    console.log(newsletterId)
+    const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters = ?"
     try {
         const result = await new Promise((resolve, reject)=>{
             connection.query(query, newsletterId, (err, res, fields)=> {
@@ -46,8 +44,8 @@ async function getNewsletterData(newsletterId) {
         })
         return result
     } catch (err) {
-        console.log("Hiba a kiküldésre váró levelek adatbázis lekérése során. " + err.message)
-        return false
+        console.log(err)
+        return err
     }
 }
 
