@@ -168,9 +168,6 @@ router.post("/send", async (req, res)=> {
 
 router.post("/mailtest", async (req, res) => {
     sendingMail().then(eredmeny => {
-        if (eredmeny) 
-            res.send("ok")
-        else
-            res.send("sikertelen küldés")
+        res.send(eredmeny)
     }).catch(err => res.send("hiba: " + err))
 })

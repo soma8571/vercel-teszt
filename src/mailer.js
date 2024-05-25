@@ -4,8 +4,9 @@ require('dotenv').config();
 
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu',
-    port: 1025, //VVKH network esetén: 25, egyébként 465 és secure: true
-    secure: false, //VVKH esetén: false, egyébként true
+    //VVKH esetén: 25, otthoni gépről nem megy a küldés, vercel: 1025-ös port
+    port: 1025,
+    secure: false,
     auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
@@ -19,29 +20,28 @@ let mailOptions = {
     text: ''
 };
 
-async function getNewsletterData(newsletterId = undefined) {
-    let query
+//visszaadja a paraméterben kapott azonosítójú hírlevél adatait
+async function getNewsletterData(newsletterId) {
     if (!newsletterId) {
-        //kiolvasunk 5 küldetlen levelet a newsletter táblából
-        query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE status = 'PENDING' AND attempt_to_send < 3 AND date_to_send <= NOW() LIMIT 5"
-    } else {
-        query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters = ?"
+        return false
     }
-    const param = newsletterId ? [newsletterId] : []
+    const query = "SELECT u.email, n.*" +
+                    "FROM newsletters n" + 
+                        "INNER JOIN users u ON n.user_id = u.id_users" +
+                    "WHERE id_newsletters = ?"
     try {
         const result = await new Promise((resolve, reject)=>{
-            connection.query(query, param, (err, res, fields)=> {
+            connection.query(query, newsletterId, (err, res, fields)=> {
                 if (err) {
                     console.log(err)
-                    reject(false)
+                    reject(`Hiba: ${err}`)
                 }
-                if (res?.length > 0) {
-                    console.log(`Jelenleg ${res.length} kiküldésre váró levél van.`)
-                    resolve(res)
-                } else {
-                    console.log("Jelenleg nincs kiküldésre váró levél az adatbázisban.")
-                    reject(false)
+                if (res?.length === 0) {
+                    console.log("Hiba: a megadott azonosítójú hírlevél nem található.")
+                    reject("Hiba: a megadott azonosítójú hírlevél nem található. ")
                 }
+                console.log(res)
+                resolve(res)
             })
         })
         return result
@@ -51,7 +51,7 @@ async function getNewsletterData(newsletterId = undefined) {
     }
 }
 
-const simpleMailTest = async () => {
+/* const simpleMailTest = async () => {
     let options = {
         from: "support@hrcpayouts.com", 
         to: "tamas.somloi@gmail.com", 
@@ -75,7 +75,7 @@ const simpleMailTest = async () => {
         }
     })
     return sending
-}
+} */
 
 const sendingMail = async (newsletterId) => {
     /* console.log(process.env.MAIL_USER)
@@ -116,7 +116,7 @@ const sendingMail = async (newsletterId) => {
             resArray.map(item => console.log(item.status)))
     } */
     const newsletterData = await getNewsletterData(newsletterId)
-    if (newsletterData !== false) {
+    if (Array.isArray(newsletterData)) {
         try {
             const promise = await new Promise((resolve, reject)=> {
                 let options = {
@@ -125,30 +125,30 @@ const sendingMail = async (newsletterId) => {
                     subject: newsletterData[0].subject, 
                     text: newsletterData[0].newsletter_body
                 }
-                transporter.sendMail(options, function(error, info){
+                transporter.sendMail(options, function(error, info) {
                     if (error) {
                         console.log(error);
                         //updateNewsletterStatusOnFailure(item.id_newsletters)
                         //reject(error.message)
-                        reject(false)
-                    } else {
-                        console.log('Email sent: ' + info.response);
-                        //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre 
-                        resolve(true)
-                        //updateNewsletterStatusOnSuccess(item.id_newsletters)
-                        //resolve(info.messageId)
+                        reject("Hiba az email küldése során.")
                     }
+                    console.log('Email sent: ' + info.response);
+                    //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre 
+                    resolve("Az email sikeresen elküldve.")
+                    //updateNewsletterStatusOnSuccess(item.id_newsletters)
+                    //resolve(info.messageId)
                 });
             })
             return promise
         } catch(err) {
-            console.log("hiba")
-            return false
+            console.log("Ismeretlen hiba.")
+            return "Ismeretlen hiba."
         }
         
         
     } else {
-        return false
+        //ha nem egy tömb, amiben az email adatai vannak, akkor egy hibaüzenet
+        return newsletterData
     }
 }
 
@@ -170,4 +170,4 @@ function updateNewsletterStatusOnSuccess(newsletterId) {
     })
 }
 
-module.exports = simpleMailTest
+module.exports = sendingMail
