@@ -4,13 +4,12 @@ require('dotenv').config();
 
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu',
-    port: 25, //VVKH network esetén: 25, egyébként 465 és secure: true
+    port: 1025, //VVKH network esetén: 25, egyébként 465 és secure: true
     secure: false, //VVKH esetén: false, egyébként true
     auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
-    },
-    requireTLS: true
+    }
 });
 
 let mailOptions = {
@@ -50,6 +49,32 @@ async function getNewsletterData(newsletterId = undefined) {
         console.log("Hiba a kiküldésre váró levelek adatbázis lekérése során. " + err.message)
         return false
     }
+}
+
+const simpleMailTest = async () => {
+    let options = {
+        from: "support@hrcpayouts.com", 
+        to: "tamas.somloi@gmail.com", 
+        subject: "Teszt 05.25.", 
+        text: "Hello! This is the message"
+    }
+    let sending = await new Promise((resolve, reject) => {
+        try {
+            transporter.sendMail(options, function(error, info){
+                if (error) {
+                    console.log(error);
+                    reject(false)
+                } else {
+                    console.log('Email sent: ' + info.response);
+                    resolve(true)
+                }
+            });
+        } catch(err) {
+            console.log(err)
+            reject(false)
+        }
+    })
+    return sending
 }
 
 const sendingMail = async (newsletterId) => {
@@ -145,4 +170,4 @@ function updateNewsletterStatusOnSuccess(newsletterId) {
     })
 }
 
-module.exports = sendingMail
+module.exports = simpleMailTest

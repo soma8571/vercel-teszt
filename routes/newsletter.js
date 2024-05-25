@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt')
 const connection = require('../src/db')
 const sendingMail = require('../src/mailer')
 const jwt = require('jsonwebtoken')
-const { promises } = require('nodemailer/lib/xoauth2')
 
 module.exports = router
 
@@ -165,5 +164,13 @@ router.post("/send", async (req, res)=> {
     } else {
         res.status(403).json({msg: "Hiba."})
     }
-    
+})
+
+router.post("/mailtest", async (req, res) => {
+    sendingMail().then(eredmeny => {
+        if (eredmeny) 
+            res.send("ok")
+        else
+            res.send("sikertelen küldés")
+    }).catch(err => res.send("hiba: " + err))
 })
