@@ -94,9 +94,9 @@ const sendingMail = async (newsletterId) => {
                         reject("Hiba az email küldése során.")
                     }
                     console.log('Email sent: ' + info.response);
-                    //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre 
-                    resolve("Az email sikeresen elküldve.")
+                    //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre
                     updateNewsletterStatusOnSuccess(item.id_newsletters)
+                    resolve("Az email sikeresen elküldve.")
                     //resolve(info.messageId)
                 });
             })
