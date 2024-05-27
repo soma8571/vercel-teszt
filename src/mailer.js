@@ -76,43 +76,6 @@ async function getNewsletterData(newsletterId) {
 } */
 
 const sendingMail = async (newsletterId) => {
-    /* console.log(process.env.MAIL_USER)
-    transporter.verify(function (error, success) {
-        if (error) {
-          console.log(error);
-        } else {
-          console.log("Server is ready to take our messages");
-        }
-      });  */
-   
-    /* const newsletterData = await getNewsletterData(newsletterId)
-    if (newsletterData !== false) {
-        const promiseArray = newsletterData.map((item, ind) => {
-            return new Promise((resolve, reject)=> {
-                let options = {
-                    ...mailOptions, 
-                    to: item.email, 
-                    subject: item.subject, 
-                    text: item.newsletter_body
-                }
-                transporter.sendMail(options, function(error, info){
-                    if (error) {
-                        console.log(error);
-                        updateNewsletterStatusOnFailure(item.id_newsletters)
-                        reject(error.message)
-                    } else {
-                        console.log('Email sent: ' + info.response);
-                        //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre 
-                        updateNewsletterStatusOnSuccess(item.id_newsletters)
-                        resolve(info.messageId)
-                    }
-                });
-            })
-            
-        })
-        Promise.allSettled(promiseArray).then(resArray => 
-            resArray.map(item => console.log(item.status)))
-    } */
     const newsletterData = await getNewsletterData(newsletterId)
     if (Array.isArray(newsletterData)) {
         try {
@@ -126,14 +89,14 @@ const sendingMail = async (newsletterId) => {
                 transporter.sendMail(options, function(error, info) {
                     if (error) {
                         console.log(error);
-                        //updateNewsletterStatusOnFailure(item.id_newsletters)
+                        updateNewsletterStatusOnFailure(item.id_newsletters)
                         //reject(error.message)
                         reject("Hiba az email küldése során.")
                     }
                     console.log('Email sent: ' + info.response);
                     //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre 
                     resolve("Az email sikeresen elküldve.")
-                    //updateNewsletterStatusOnSuccess(item.id_newsletters)
+                    updateNewsletterStatusOnSuccess(item.id_newsletters)
                     //resolve(info.messageId)
                 });
             })
@@ -142,8 +105,6 @@ const sendingMail = async (newsletterId) => {
             console.log("Ismeretlen hiba.")
             return "Ismeretlen hiba."
         }
-        
-        
     } else {
         //ha nem egy tömb, amiben az email adatai vannak, akkor egy hibaüzenet
         return newsletterData
