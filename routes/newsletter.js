@@ -4,6 +4,7 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const connection = require('../src/db')
 const sendingMail = require('../src/mailer')
+const sendingMail_v2 = require('../src/mailer_v2')
 const jwt = require('jsonwebtoken')
 
 module.exports = router
@@ -134,18 +135,8 @@ router.get("/getnumberoftobesent", async (req, res) => {
 //A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése
 router.post("/send", async (req, res)=> {
     if (req.body?.data) {
-        //res.status(200).json({msg: req.body.data})
-        
         //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
         const newsletterIDs = [...req.body.data]
-        
-        /* const promiseArray = IDs.map(item => {
-            return new Promise((resolve, reject) => {
-                resolve(sendingMail(item.id))        
-            })
-        })
-        let temp = ''
-        Promise.allSettled(promiseArray).then(res.send("ok")) */
         const promiseArray = newsletterIDs.map(item => {
             return new Promise(async (resolve, reject)=>{
                 const eredmeny = await sendingMail(item.id)
@@ -162,6 +153,20 @@ router.post("/send", async (req, res)=> {
             res.status(200).json({msg: `Sikeresen kiküldve: ${successSendings.length} db email`})
         })
         
+        
+    } else {
+        res.status(403).json({msg: "Hiba."})
+    }
+})
+
+//A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése - VERSION 2
+router.post("/send-v2", async (req, res)=> {
+    if (req.body?.data) {
+        //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
+        const newsletterIDs = [...req.body.data]
+        const arrayOfIds = newsletterIDs.map(item => item.id)
+        const resOfSending = await sendingMail_v2(arrayOfIds)
+        res.status(200).json({msg: resOfSending})
         
     } else {
         res.status(403).json({msg: "Hiba."})
