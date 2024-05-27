@@ -137,7 +137,7 @@ router.post("/send", async (req, res)=> {
         //res.status(200).json({msg: req.body.data})
         
         //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
-        const IDs = [...req.body.data]
+        const newsletterIDs = [...req.body.data]
         
         /* const promiseArray = IDs.map(item => {
             return new Promise((resolve, reject) => {
@@ -146,20 +146,22 @@ router.post("/send", async (req, res)=> {
         })
         let temp = ''
         Promise.allSettled(promiseArray).then(res.send("ok")) */
-        const promise = await new Promise(async (resolve, reject)=>{
-            const eredmeny = await sendingMail(IDs[0].id)
-            if (eredmeny !== false) {
-                resolve(true)
-            } else {
-                reject(false)
-            }
+        const promiseArray = newsletterIDs.map(item => {
+            return new Promise(async (resolve, reject)=>{
+                const eredmeny = await sendingMail(item.id)
+                if (eredmeny !== false) {
+                    resolve(true)
+                } else {
+                    reject(false)
+                }
+            })
         })
-
-        if (promise) {
-            res.json({msg: "kiküldve"})
-        } else {
-            res.json({msg: "hiba a küldés során"})
-        }
+        Promise.allSettled(promiseArray).then(resultArray => {
+            const successSendings = resultArray.filter(item => item.status === "fulfilled")
+            console.log(`Sikeresen kiküldve: ${successSendings.length} db email`)
+            res.status(200).json({msg: `Sikeresen kiküldve: ${successSendings.length} db email`})
+        })
+        
         
     } else {
         res.status(403).json({msg: "Hiba."})
