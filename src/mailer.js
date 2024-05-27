@@ -89,13 +89,13 @@ const sendingMail = async (newsletterId) => {
                 transporter.sendMail(options, function(error, info) {
                     if (error) {
                         console.log(error);
-                        updateNewsletterStatusOnFailure(item.id_newsletters)
+                        updateNewsletterStatusOnFailure(newsletterId)
                         //reject(error.message)
                         reject("Hiba az email küldése során.")
                     }
                     console.log('Email sent: ' + info.response);
                     //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre
-                    updateNewsletterStatusOnSuccess(item.id_newsletters)
+                    updateNewsletterStatusOnSuccess(newsletterId)
                     resolve("Az email sikeresen elküldve.")
                     //resolve(info.messageId)
                 });
