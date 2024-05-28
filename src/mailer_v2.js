@@ -5,7 +5,7 @@ require('dotenv').config();
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu',
     //VVKH esetén: 25, otthoni gépről nem megy a küldés, vercel: 1025-ös port
-    port: 1025,
+    port: 25,
     secure: false,
     auth: {
         user: process.env.MAIL_USER,
@@ -25,7 +25,7 @@ async function getNewsletterData_v2(ArrayOfNewsletterIds) {
     if (!ArrayOfNewsletterIds) {
         return false
     }
-    console.log(newsletterId)
+    //console.log(ArrayOfNewsletterIds)
     const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     try {
         const result = await new Promise((resolve, reject)=>{
@@ -38,7 +38,7 @@ async function getNewsletterData_v2(ArrayOfNewsletterIds) {
                     console.log("Hiba: a megadott azonosítójú hírlevél nem található.")
                     reject("Hiba: a megadott azonosítójú hírlevél nem található. ")
                 }
-                console.log(res)
+                //console.log(res)
                 resolve(res)
             })
         })
