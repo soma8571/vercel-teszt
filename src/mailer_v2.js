@@ -5,7 +5,7 @@ require('dotenv').config();
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu',
     //VVKH esetén: 25, otthoni gépről nem megy a küldés, vercel: 1025-ös port
-    port: 25,
+    port: 1025,
     secure: false,
     auth: {
         user: process.env.MAIL_USER,
