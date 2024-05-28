@@ -5,7 +5,7 @@ require('dotenv').config();
 let transporter = nodemailer.createTransport({
     host: 'mail.nethely.hu',
     //VVKH esetén: 25, otthoni gépről nem megy a küldés, vercel: 1025-ös port
-    port: 1025,
+    port: process.env.EMAIL_PORT,
     secure: false,
     auth: {
         user: process.env.MAIL_USER,
@@ -53,7 +53,7 @@ const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
     const newsletterData = await getNewsletterData_v2(ArrayOfNewsletterIds)
     if (Array.isArray(newsletterData)) {
         try {
-            const promiseArray = newsletterData.map(item => {
+            const promiseArray = newsletterData.map((item) => {
                 return new Promise((resolve, reject) => {
                     let options = {
                         ...mailOptions,
@@ -78,18 +78,20 @@ const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
                 })
             })
 
-            Promise.allSettled(promiseArray).then(resArray => {
+            const sendResultArray = await Promise.allSettled(promiseArray)
+            return sendResultArray
+            /* .then(resArray => {
                 const success = resArray.filter(item => item.status === 'fulfilled')
                 console.log(`${success.length} db email elküldése sikeres volt`)
                 return `${success.length} db email elküldése sikeres volt`
-            })
+            }) */
 
         } catch(err) {
             console.log("Ismeretlen hiba.")
             return "Ismeretlen hiba"
         }
     } else {
-        //ha nem egy tömb, amiben az email adatai vannak, akkor egy hibaüzenet
+        //ha nem egy tömb (amit fentebb ellenőríztünk) akkor egy hibaüzenettel tér vissza
         return newsletterData
     }
 }

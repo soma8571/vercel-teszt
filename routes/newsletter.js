@@ -166,7 +166,12 @@ router.post("/send-v2", async (req, res)=> {
         const newsletterIDs = [...req.body.data]
         const arrayOfIds = newsletterIDs.map(item => item.id)
         const resOfSending = await sendingMail_v2(arrayOfIds)
-        res.status(200).json({msg: resOfSending})
+        
+        if (Array.isArray(resOfSending)) {
+            res.status(200).json({msg: resOfSending})
+        } else {
+            res.status(403).json({msg: resOfSending})
+        }
         
     } else {
         res.status(403).json({msg: "Hiba."})
