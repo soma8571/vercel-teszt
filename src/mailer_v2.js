@@ -26,7 +26,19 @@ async function getNewsletterData_v2(ArrayOfNewsletterIds) {
         return false
     }
     //console.log(ArrayOfNewsletterIds)
-    const query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    let query
+    //ha 10-től eltérő számú levelet küldünk, akkor a query-ben szereplő paramétert jelölő '?' karakterek számát is eszerint kell beállítani
+    if (ArrayOfNewsletterIds.length !== 10) {
+        let questionMarks = ''
+        for (let i=0; i < ArrayOfNewsletterIds.length; i++) {
+            questionMarks += '?,'
+        }
+        questionMarks = questionMarks.slice(0, questionMarks.length-1)
+        query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters IN (" + questionMarks + ")"
+    } else {
+        query = "SELECT u.email, n.* FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE id_newsletters IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    }
+    
     try {
         const result = await new Promise((resolve, reject)=>{
             connection.query(query, ArrayOfNewsletterIds, (err, res, fields)=> {
@@ -74,18 +86,10 @@ const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
                         resolve("Az email sikeresen elküldve.")
                         //resolve(info.messageId)
                     });
-
                 })
             })
-
             const sendResultArray = await Promise.allSettled(promiseArray)
             return sendResultArray
-            /* .then(resArray => {
-                const success = resArray.filter(item => item.status === 'fulfilled')
-                console.log(`${success.length} db email elküldése sikeres volt`)
-                return `${success.length} db email elküldése sikeres volt`
-            }) */
-
         } catch(err) {
             console.log("Ismeretlen hiba.")
             return "Ismeretlen hiba"

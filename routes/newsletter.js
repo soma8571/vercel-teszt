@@ -28,7 +28,7 @@ router.post("/save", async (req, res) => {
     //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
     //const recipients = [ 505, 506]
     const recipients = []
-    for (let i=0; i < 40; i++) {
+    for (let i=0; i < 7; i++) {
         if (i % 2 === 0)
             recipients.push(506)
         else
@@ -70,7 +70,7 @@ router.post("/save", async (req, res) => {
             //res.status(403).json({error: "Hiba a mentés során."})
         }
     })
-    res.status(200).json({msg: "A hírlevél adatainak rögzítése befejeződött."})
+    res.status(200).json({msg: "A hírlevél adatainak rögzítése sikeres volt."})
 })
 
 async function getAllUserIdFromDB() {
