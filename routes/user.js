@@ -2,8 +2,9 @@ const express = require('express')
 const app = express()
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const connection = require('../src/db');
+const connection = require('../src/db')
 const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 router.post("/hash", (req, res)=>{
     if (req.body?.plaintext) {
@@ -28,7 +29,7 @@ router.post("/login", (req, res, next) => {
                 //res.send("pass: " + passDB)
                 bcrypt.compare(passwdPosted, passDB).then(eredmeny => {
                     if (eredmeny) {
-                        const token = jwt.sign({foo: 'bar'}, "text")
+                        const token = jwt.sign({foo: 'bar'}, process.env.JWT_KEY, {expiresIn: "1h"})
                         res.json({"accessToken": token})
                     } else {
                         res.status(403).json({msg: "Hiba. Hibás email/jelszó páros." })

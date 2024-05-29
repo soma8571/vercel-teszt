@@ -1,15 +1,14 @@
 const express = require('express')
-const app = express()
 const router = express.Router()
-const bcrypt = require('bcrypt')
 const connection = require('../src/db')
 const sendingMail = require('../src/mailer')
 const sendingMail_v2 = require('../src/mailer_v2')
-const jwt = require('jsonwebtoken')
+const isTokenValid = require('../src/validation')
 
 module.exports = router
 
-router.post("/save", async (req, res) => {
+//hírlevél mentése adatbázisba az érkező adatok alapján
+router.post("/save", isTokenValid, async (req, res) => {
     if (!req.body?.subject) {
         res.status(403).json({msg: "Hiba. Hiányzó adat: tárgy"})
         return
@@ -73,6 +72,7 @@ router.post("/save", async (req, res) => {
     res.status(200).json({msg: "A hírlevél adatainak rögzítése sikeres volt."})
 })
 
+//visszaadja az adatbázisban lévő összes user azonosítóját
 async function getAllUserIdFromDB() {
     const query = "SELECT id_users FROM users"
     const dbQuery = await new Promise((resolve, reject)=>{
@@ -90,7 +90,7 @@ async function getAllUserIdFromDB() {
 }
 
 //Válaszul egy objektumlistát ad, melyben a kiküldésre váró (unsent, pending) levelek adatai találhatóak
-router.get("/getunsentdata", async (req, res)=> {
+router.get("/getunsentdata", isTokenValid, async (req, res)=> {
     const query = "SELECT email, id_newsletters, subject, status FROM newsletters n INNER JOIN users u ON n.user_id = u.id_users WHERE (status = 'UNSENT' OR status = 'PENDING') AND attempt_to_send < 3 ORDER BY id_newsletters ASC";
     const dbQuery = await new Promise((resolve, reject)=>{
         connection.query(query, (err, res, fields)=>{
@@ -133,7 +133,7 @@ router.get("/getnumberoftobesent", async (req, res) => {
 })
 
 //A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése
-router.post("/send", async (req, res)=> {
+router.post("/send", isTokenValid, async (req, res)=> {
     if (req.body?.data) {
         //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
         const newsletterIDs = [...req.body.data]
@@ -160,7 +160,8 @@ router.post("/send", async (req, res)=> {
 })
 
 //A kapott objektumtömbben érkező azonosítójú hírlevelek kiküldése - VERSION 2
-router.post("/send-v2", async (req, res)=> {
+//különbség az előzőhöz képest, hogy itt egy adatbázis-művelet segítségével kérjük le az összes hírlevél adatot
+router.post("/send-v2", isTokenValid, async (req, res)=> {
     if (req.body?.data) {
         //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
         const newsletterIDs = [...req.body.data]
@@ -178,6 +179,7 @@ router.post("/send-v2", async (req, res)=> {
     }
 })
 
+//Csak tesztelésre, kiküldi a body-ban érkező id-jű levelet
 router.post("/mailtest", async (req, res) => {
     if (req.body?.newsletterId) {
         sendingMail(req.body.newsletterId).then(eredmeny => {

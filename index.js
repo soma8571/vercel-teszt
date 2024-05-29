@@ -6,6 +6,7 @@ const sendingMail = require('./src/mailer')
 const cors = require('cors')
 const user = require('./routes/user')
 const newsletter = require('./routes/newsletter')
+const isTokenValid = require('./src/validation')
 //var cron = require('node-cron')
 
 /*
@@ -37,27 +38,26 @@ app.get("/", (req, res, next)=> {
     res.send(process.env.DB_HOST ?? "nincs db host")
 })
 
-function isTokenValid(req, res, next) {
-    if (req.headers['authorization']) {
-
-        //ha megvan az auth header akkor még ellenőrizni is kell, hogy a token valid-e 
-        next()
-    } else {
-        res.status(403).send("Hiba")
-    }
-}
-
 app.get("/numberofrecipients", isTokenValid, (req, res) => {
-    res.json( req.headers )
-})
-
-app.get("/mail", (req, res) => {
-    sendingMail().then((eredmeny)=>{
-        res.send("A küldés sikeres volt. " + eredmeny)
+    const query = "SELECT COUNT(id_users) AS NumberOfRecipients FROM users"
+    const promise = new Promise((resolve, reject) => {
+        connection.query(query, (err, result, fields)=>{
+            if (err) {
+                console.log(err)
+                reject("Hiba a lekérdezés során.")
+            }
+            //console.log(result)
+            resolve(result[0].NumberOfRecipients)   
+        })
     })
-    .catch(err => res.send("sikeretelen küldés. " + err))
+    promise.then(
+        result => 
+            res.status(200).json({msg: result})
+        ,
+        error => 
+            res.status(403).json({msg: error})
+    )
 })
-
 
 app.listen(port, ()=> {
     console.log(`Server listening on ${port} port.`)
