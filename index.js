@@ -39,7 +39,7 @@ app.get("/", (req, res, next)=> {
 })
 
 app.get("/numberofrecipients", isTokenValid, (req, res) => {
-    const query = "SELECT COUNT(id_users) AS NumberOfRecipients FROM users"
+    const query = "SELECT COUNT(email) AS NumberOfRecipients FROM users"
     const promise = new Promise((resolve, reject) => {
         connection.query(query, (err, result, fields)=>{
             if (err) {
