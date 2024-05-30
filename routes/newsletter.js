@@ -27,7 +27,7 @@ router.post("/save", isTokenValid, async (req, res) => {
     //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
     //const recipients = [ 505, 506]
     const recipients = []
-    for (let i=0; i < 7; i++) {
+    for (let i=1; i < 3; i++) {
         if (i % 2 === 0)
             recipients.push(506)
         else
@@ -42,8 +42,14 @@ router.post("/save", isTokenValid, async (req, res) => {
     console.log(recipients)
 
     //2, az adatbázis newsletters táblájába mentjük a levelet 
-    const insertQuery = "INSERT INTO newsletters (subject, newsletter_body, date_to_send, user_id) VALUES (?, ?, ?, ?)"
-    const params = [req.body.subject, req.body.mailBody, req.body.dateToSend, ""]
+    const insertQuery = "INSERT INTO newsletters (subject, newsletter_body, image_path, date_to_send, user_id) VALUES (?, ?, ?, ?, ?)"
+    const params = [
+        req.body.subject, 
+        req.body.mailBody, 
+        req.body.imageUrl, 
+        req.body.dateToSend, 
+        ""
+    ]
     recipients.map(item => {
         //a params tömb utolsó elemét mindig cseréljük ki az aktuális userId-re
         let userId = item?.id_users ?? item;

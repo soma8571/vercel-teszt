@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const connection = require('./db');
+const { text } = require('express');
 require('dotenv').config();
 
 let transporter = nodemailer.createTransport({
@@ -19,6 +20,15 @@ let mailOptions = {
     subject: '',
     text: ''
 };
+
+const newsletterStyle = `
+                        <head>
+                            <style>
+                                body {
+                                    font-color: red;
+                                }
+                            </style>
+                        </head>`
 
 //visszaadja a tömb paraméterben érkező azonosítókhoz tartozó hírlevelek adatait - VERSION 2
 async function getNewsletterData_v2(ArrayOfNewsletterIds) {
@@ -67,12 +77,33 @@ const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
         try {
             const promiseArray = newsletterData.map((item) => {
                 return new Promise((resolve, reject) => {
-                    let options = {
-                        ...mailOptions,
-                        to: item.email,
-                        subject: item.subject,
-                        text: item.newsletter_body
+                    let options
+                    let htmlContent = item.newsletter_body.replace(/(?:\r\n|\r|\n)/g, '<br>')
+                    if (item.image_path !== "" || item.image_path !== 'NULL') {
+                        options = {
+                            ...mailOptions,
+                            to: item.email,
+                            subject: item.subject,
+                            text: item.newsletter_body,
+                            html: `<html>
+                                ${newsletterStyle}
+                                <body>
+                                    <p style='font-size: 1.2rem;'>
+                                        ${htmlContent}
+                                    </p>
+                                    <img src=${item.image_path} alt='kép'>
+                                </body>
+                            </html>`
+                        }
+                    } else {
+                        options = {
+                            ...mailOptions,
+                            to: item.email,
+                            subject: item.subject,
+                            text: item.newsletter_body,
+                        }
                     }
+                    
                     transporter.sendMail(options, function(error, info) {
                         if (error) {
                             console.log(error);
