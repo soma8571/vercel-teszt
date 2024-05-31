@@ -21,15 +21,6 @@ let mailOptions = {
     text: ''
 };
 
-const newsletterStyle = `
-                        <head>
-                            <style>
-                                body {
-                                    font-color: red;
-                                }
-                            </style>
-                        </head>`
-
 //visszaadja a tömb paraméterben érkező azonosítókhoz tartozó hírlevelek adatait - VERSION 2
 async function getNewsletterData_v2(ArrayOfNewsletterIds) {
     if (!ArrayOfNewsletterIds) {
@@ -71,22 +62,26 @@ async function getNewsletterData_v2(ArrayOfNewsletterIds) {
     }
 }
 
-const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
+//Ha a 'testAddress' paramétert is megkapja a fgv., akkor csak a változóban érkező email címre küldünk ki egyetlen emailt tesztelés céljából. Ilyen esetben az 'ArrayOfNewsletterIds' tömb is csak egyetlen objektumot (levél azonosítót) tartalmaz
+const sendingMail_v2 = async (ArrayOfNewsletterIds, testAddress = undefined) => {
     const newsletterData = await getNewsletterData_v2(ArrayOfNewsletterIds)
     if (Array.isArray(newsletterData)) {
         try {
             const promiseArray = newsletterData.map((item) => {
                 return new Promise((resolve, reject) => {
                     let options
-                    let htmlContent = item.newsletter_body.replace(/(?:\r\n|\r|\n)/g, '<br>')
+                    //ha az adott levélhez képet is csatolni kell, akkor html email küldünk, egyébként sima szövegeset
                     if (item.image_path !== "" || item.image_path !== 'NULL') {
+                        //html email esetén a sortöréseket módosítani kell az email szövegében
+                        let htmlContent = item.newsletter_body
+                            .replace(/(?:\r\n|\r|\n)/g, '<br>')
                         options = {
                             ...mailOptions,
-                            to: item.email,
+                            to: testAddress ?? item.email,
                             subject: item.subject,
                             text: item.newsletter_body,
-                            html: `<html>
-                                ${newsletterStyle}
+                            html: `
+                            <html>
                                 <body>
                                     <p style='font-size: 1.2rem;'>
                                         ${htmlContent}
@@ -103,19 +98,22 @@ const sendingMail_v2 = async (ArrayOfNewsletterIds) => {
                             text: item.newsletter_body,
                         }
                     }
-                    
                     transporter.sendMail(options, function(error, info) {
                         if (error) {
                             console.log(error);
-                            updateNewsletterStatusOnFailure(item.id_newsletters)
-                            //reject(error.message)
+                            if (!testAddress) {
+                                //ha NEM tesztküldés volt
+                                updateNewsletterStatusOnFailure(item.id_newsletters)
+                            }
                             reject("Hiba az email küldése során.")
                         }
                         console.log('Email sent: ' + info.response);
                         //ha a levél elküldésre került, akkor az adatbázisban módosítani kell az adott levél státuszát 'SENT' értékre
-                        updateNewsletterStatusOnSuccess(item.id_newsletters)
+                        if (!testAddress) {
+                            //ha NEM tesztküldés volt
+                            updateNewsletterStatusOnSuccess(item.id_newsletters)
+                        }
                         resolve("Az email sikeresen elküldve.")
-                        //resolve(info.messageId)
                     });
                 })
             })

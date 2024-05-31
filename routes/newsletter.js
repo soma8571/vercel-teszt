@@ -27,7 +27,7 @@ router.post("/save", isTokenValid, async (req, res) => {
     //1.a: első körben csak néhány meghatározott címre küldjük ki (tesztkörnyezet)
     //const recipients = [ 505, 506]
     const recipients = []
-    for (let i=1; i < 3; i++) {
+    for (let i=1; i < 24; i++) {
         if (i % 2 === 0)
             recipients.push(506)
         else
@@ -172,7 +172,8 @@ router.post("/send-v2", isTokenValid, async (req, res)=> {
         //reg.body.data: egy 10 elemű objektumtömb, egy objektum {id: xxx}
         const newsletterIDs = [...req.body.data]
         const arrayOfIds = newsletterIDs.map(item => item.id)
-        const resOfSending = await sendingMail_v2(arrayOfIds)
+        //Ha a 'testAddress' paramétert is megkapja a fgv., akkor csak a változóban érkező email címre küldünk ki egyetlen emailt tesztelés céljából.
+        const resOfSending = await sendingMail_v2(arrayOfIds, req.body?.testAddress)
         
         if (Array.isArray(resOfSending)) {
             res.status(200).json({msg: resOfSending})
